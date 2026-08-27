@@ -2008,11 +2008,10 @@ server.listen(PORT, "0.0.0.0", () => {
     console.log(`ChickenClick server running on port ${PORT}`);
 });
              
-
+            
             }
         );
 
-    })
 
     .catch(error => {
 
