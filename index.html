@@ -1,368 +1,589 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Chicken Clicker Online</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #1a1a1a; color: #fff; text-align: center; margin: 0; padding: 0; user-select: none; }
-        #game-container { max-width: 420px; margin: 20px auto; background: #2a2a2a; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        button { padding: 10px 15px; font-size: 15px; cursor: pointer; background: #ff9800; border: none; border-radius: 6px; color: white; margin: 5px; font-weight: bold; }
-        button:hover { background: #e68900; }
-        input, select { padding: 8px; font-size: 14px; border-radius: 5px; border: 1px solid #444; background: #333; color: #fff; margin: 5px; }
-        #chicken { width: 160px; cursor: pointer; transition: transform 0.08s; margin: 15px 0; }
-        #chicken:active { transform: scale(0.92); }
-        .hidden { display: none !important; }
-        nav { margin-top: 15px; display: flex; justify-content: space-around; background: #222; padding: 8px; border-radius: 8px; }
-        nav button { font-size: 12px; padding: 6px 10px; margin: 0; background: #444; }
-        nav button.active { background: #ff9800; }
-        .screen { padding: 10px 0; }
-        .chat-box { height: 120px; background: #1f1f1f; border: 1px solid #444; border-radius: 5px; overflow-y: scroll; text-align: left; padding: 8px; font-size: 13px; margin-bottom: 8px; }
-        .shop-grid, .inv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 250px; overflow-y: auto; }
-        .item-card { background: #333; padding: 8px; border-radius: 6px; border: 1px solid #555; }
-    </style>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>ChickenClick Online</title>
+
+<link
+rel="stylesheet"
+href="style.css">
+
 </head>
+
+
 <body>
 
-    <div id="game-container">
-        <!-- Верхня панель профілю -->
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #333; padding: 8px 12px; border-radius: 8px;">
-            <span id="header-name" style="font-weight: bold;">Ім'я</span>
-            <button onclick="openProfile()" style="padding: 5px 10px; font-size: 12px; background: #008cba;">Профіль</button>
-        </div>
 
-        <!-- 1. ГОЛОВНЕ МЕНЮ / КЛІКЕР -->
-        <div id="screen-game" class="screen">
-            <h2>🐔 Chicken Clicker</h2>
-            <p>Баланс: <span id="coins">0</span> 🪙 | Кубки: <span id="cups">0</span> 🏆</p>
-            
-            <!-- Місце для посилання на курку -->
-            <img id="chicken" src="https://via.placeholder.com/160/FF9800/FFFFFF?text=CHICKEN" alt="Курка" onclick="clickChicken()">
-            <p><small>Клік: +<span id="click-power">0.1</span> коіна</small></p>
+<div id="loading">
 
-            <div>
-                <input type="text" id="promo-input" placeholder="Промокод або Автор">
-                <button onclick="redeemPromo()">Активувати</button>
-            </div>
-            <p id="promo-msg" style="font-size: 13px; margin: 5px 0;"></p>
-            <button onclick="claimDaily()" style="background: #4CAF50; width: 100%;">Щоденна нагорода 🎁</button>
-        </div>
-
-        <!-- 2. PVP ЕКРАН -->
-        <div id="screen-pvp" class="screen hidden">
-            <h2>⚔️ PvP Дуель (2 хвилини)</h2>
-            <div id="pvp-menu">
-                <button onclick="findPvp()" style="background: #d9534f; font-size: 16px;">Знайти бій</button>
-                <p id="pvp-status">Натисніть пошук супротивника</p>
-            </div>
-            <div id="pvp-arena" class="hidden">
-                <p>Час до кінця: <span id="pvp-timer" style="font-size: 20px; color: #ff9800;">120</span>с</p>
-                <p>Рахунок: Ви <span id="my-pvp-score">0</span> : <span id="enemy-pvp-score">0</span> Суперник</p>
-                <button onclick="pvpClickAction()" style="width: 100%; height: 80px; font-size: 24px; background: #d9534f;">ТАПАЙ БИТУ!</button>
-            </div>
-        </div>
-
-        <!-- 3. ТОП ГРАВЦІВ -->
-        <div id="screen-top" class="screen hidden">
-            <h2>🏆 Топ Гравців</h2>
-            <div id="top-list" style="max-height: 250px; overflow-y: auto; font-size: 14px; text-align: left; background: #222; padding: 5px; border-radius: 5px;">
-                Завантаження топів...
-            </div>
-        </div>
-
-        <!-- 4. ДРУЗІ -->
-        <div id="screen-friends" class="screen hidden">
-            <h2>👥 Друзі</h2>
-            <div>
-                <input type="text" id="friend-id-input" placeholder="Введіть ID друга">
-                <button onclick="addFriend()">Додати</button>
-            </div>
-            <div id="friends-list" style="margin-top: 10px; text-align: left; max-height: 200px; overflow-y: auto;"></div>
-        </div>
-
-        <!-- 5. КЛАНИ -->
-        <div id="screen-clans" class="screen hidden">
-            <h2>🏰 Клани</h2>
-            <div id="clan-view-none">
-                <p style="font-size: 13px;">Створення клану коштує 5000 🪙</p>
-                <input type="text" id="clan-name-input" placeholder="Назва клану">
-                <button onclick="createClan()">Створити</button>
-            </div>
-            <div id="clan-view-active" class="hidden">
-                <h3 id="my-clan-title">Клан: </h3>
-                <div class="chat-box" id="clan-chat-msgs"></div>
-                <div style="display: flex;">
-                    <input type="text" id="clan-msg-input" placeholder="Повідомлення..." style="flex: 1;">
-                    <button onclick="sendClanMsg()">Надіслати</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 6. МАГАЗИН ТА ІНВЕНТАР -->
-        <div id="screen-shop" class="screen hidden">
-            <h2>🛒 Магазин скінів (50 шт) та Інвентар</h2>
-            <div style="display: flex; justify-content: center; margin-bottom: 10px;">
-                <button onclick="switchTab('shop')" id="btn-tab-shop">Магазин</button>
-                <button onclick="switchTab('inv')" id="btn-tab-inv">Інвентар</button>
-            </div>
-            <div id="tab-shop-content" class="shop-grid"></div>
-            <div id="tab-inv-content" class="inv-grid hidden"></div>
-        </div>
-
-        <!-- НИЖНЯ ПАНЕЛЬ НАВІГАЦІЇ -->
-        <nav>
-            <button onclick="switchScreen('game')" class="active" id="nav-game">Клік</button>
-            <button onclick="switchScreen('pvp')" id="nav-pvp">PvP</button>
-            <button onclick="switchScreen('top')" id="nav-top">Топ</button>
-            <button onclick="switchScreen('friends')" id="nav-friends">Друзі</button>
-            <button onclick="switchScreen('clans')" id="nav-clans">Клани</button>
-            <button onclick="switchScreen('shop')" id="nav-shop">Магазин</button>
-        </nav>
+    <div class="loadingChicken">
+        🐔
     </div>
 
-    <!-- МОДАЛКА ПРОФІЛЮ -->
-    <div id="profile-modal" class="hidden" style="position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center;">
-        <div style="background:#333; padding:20px; border-radius:10px; width:300px; text-align:left;">
-            <h3>Профіль гравця</h3>
-            <p>ID: <span id="p-id" style="font-size:11px; color:#aaa;"></span></p>
-            <p>Нік: <input type="text" id="p-nick" style="width:120px;"></p>
-            <p>Колір ніка: <select id="p-color">
-                <option value="#fff">Білий</option>
-                <option value="#ff4444">Червоний</option>
-                <option value="#44ff44">Зелений</option>
-                <option value="#4488ff">Синій</option>
-                <option value="#ffdd44">Жовтий</option>
-                <option value="#ff44ff">Рожевий</option>
-            </select></p>
-            <p>Всього зароблено коінів: <span id="p-earned">0</span></p>
-            <p>Всього витрачено коінів: <span id="p-spent">0</span></p>
-            <p>Перемог у PvP: <span id="p-wins">0</span></p>
-            <div style="text-align: right; margin-top: 15px;">
-                <button onclick="saveProfile()" style="background:#4CAF50;">Зберегти</button>
-                <button onclick="closeProfile()" style="background:#555;">Закрити</button>
-            </div>
-            <button onclick="resetProgress()" style="background:#d9534f; margin-top:10px; width:100%; font-size:11px;">Скинути прогрес</button>
+    <h1>CHICKENCLICK</h1>
+
+    <p>Підключення до сервера...</p>
+
+</div>
+
+
+<div id="game">
+
+
+<header>
+
+    <div>
+
+        <b>
+            🐔 CHICKENCLICK
+        </b>
+
+        <div id="playerNickname">
+            ChickenPlayer
         </div>
+
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        let myData = null;
 
-        let userId = localStorage.getItem('ch_user_id');
-        if (!userId) {
-            userId = 'user_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('ch_user_id', userId);
-        }
+    <button
+    onclick="openPage('profilePage')">
 
-        socket.emit('login', { id: userId });
+        👤
 
-        socket.on('init_data', (data) => {
-            myData = data;
-            updateUI();
-            buildShopAndInv();
-        });
+    </button>
 
-        socket.on('sync_user', (data) => {
-            myData = data;
-            updateUI();
-        });
+</header>
 
-        function updateUI() {
-            if (!myData) return;
-            document.getElementById('coins').innerText = myData.coins.toFixed(1);
-            document.getElementById('cups').innerText = myData.cups;
-            const header = document.getElementById('header-name');
-            header.innerText = myData.username;
-            header.style.color = myData.color || '#fff';
-            
-            document.getElementById('click-power').innerText = myData.isTop1 ? '0.2 (Топ-1 х2)' : '0.1';
-        }
 
-        function clickChicken() {
-            socket.emit('click_chicken');
-        }
+<!-- GAME -->
 
-        function redeemPromo() {
-            const code = document.getElementById('promo-input').value;
-            socket.emit('redeem_promo', code);
-        }
-        socket.on('promo_res', (res) => {
-            const msg = document.getElementById('promo-msg');
-            msg.innerText = res.text;
-            msg.style.color = res.success ? 'lightgreen' : 'lightcoral';
-        });
+<section
+id="gamePage"
+class="page active">
 
-        function claimDaily() {
-            socket.emit('claim_daily');
-        }
+    <div class="stats">
 
-        function switchScreen(screen) {
-            ['game', 'pvp', 'top', 'friends', 'clans', 'shop'].forEach(s => {
-                document.getElementById('screen-' + s).classList.add('hidden');
-                document.getElementById('nav-' + s).classList.remove('active');
-            });
-            document.getElementById('screen-' + screen).classList.remove('hidden');
-            document.getElementById('nav-' + screen).classList.add('active');
+        <div>
+            🪙
+            <span id="coins">
+                0.0
+            </span>
+        </div>
 
-            if (screen === 'top') socket.emit('get_top');
-            if (screen === 'friends') socket.emit('get_friends');
-        }
+        <div>
+            🏆
+            <span id="trophies">
+                0
+            </span>
+        </div>
 
-        function openProfile() {
-            document.getElementById('profile-modal').classList.remove('hidden');
-            document.getElementById('p-id').innerText = myData.id;
-            document.getElementById('p-nick').value = myData.username;
-            document.getElementById('p-color').value = myData.color || '#fff';
-            document.getElementById('p-earned').innerText = myData.totalEarned.toFixed(1);
-            document.getElementById('p-spent').innerText = myData.totalSpent;
-            document.getElementById('p-wins').innerText = myData.wins || 0;
-        }
-        function closeProfile() {
-            document.getElementById('profile-modal').classList.add('hidden');
-        }
-        function saveProfile() {
-            const username = document.getElementById('p-nick').value;
-            const color = document.getElementById('p-color').value;
-            socket.emit('update_profile', { username, color });
-            closeProfile();
-        }
-        function resetProgress() {
-            if (confirm('Скинути весь прогрес гри?')) {
-                socket.emit('reset_progress');
-                closeProfile();
-            }
-        }
+    </div>
 
-        function findPvp() {
-            document.getElementById('pvp-status').innerText = 'Пошук супротивника в черзі...';
-            socket.emit('find_pvp');
-        }
-        socket.on('pvp_started', () => {
-            document.getElementById('pvp-menu').classList.add('hidden');
-            document.getElementById('pvp-arena').classList.remove('hidden');
-            document.getElementById('my-pvp-score').innerText = '0';
-            document.getElementById('enemy-pvp-score').innerText = '0';
-        });
-        socket.on('pvp_timer_tick', (t) => {
-            document.getElementById('pvp-timer').innerText = t;
-        });
-        function pvpClickAction() {
-            socket.emit('pvp_click');
-        }
-        socket.on('pvp_score_update', (scores) => {
-            document.getElementById('my-pvp-score').innerText = scores[socket.id] || 0;
-            const keys = Object.keys(scores);
-            const enemyId = keys.find(k => k !== socket.id);
-            if (enemyId) document.getElementById('enemy-pvp-score').innerText = scores[enemyId];
-        });
-        socket.on('pvp_ended', (data) => {
-            document.getElementById('pvp-menu').classList.remove('hidden');
-            document.getElementById('pvp-arena').classList.add('hidden');
-            if (data.winner === socket.id) {
-                alert('Перемога у бої! +5 🏆 кубків');
-            } else if (data.winner) {
-                alert('Поразка у бою!');
-            } else {
-                alert('Нічия!');
-            }
-        });
 
-        socket.on('top_data', (list) => {
-            let html = '';
-            list.forEach((u, index) => {
-                html += `<div style="padding: 4px; border-bottom: 1px solid #333;">#${index+1} <span style="color:${u.color \vert{}\vert{} '#fff'}">${u.username}</span> — ${u.cups} 🏆 (${u.coins.toFixed(1)} 🪙)</div>`;
-            });
-            document.getElementById('top-list').innerHTML = html;
-        });
+    <div class="chickenBox">
 
-        function addFriend() {
-            const fid = document.getElementById('friend-id-input').value;
-            if (fid) socket.emit('add_friend', fid);
-        }
-        socket.on('friends_data', (list) => {
-            let html = '';
-            list.forEach(f => {
-                html += `<div>${f.username} (${f.online ? '🟢 Онлайн' : '⚪ Офлайн'})</div>`;
-            });
-            document.getElementById('friends-list').innerHTML = html || 'Список друзів порожній';
-        });
+        <!-- ВСТАВ СВОЄ ПОСИЛАННЯ -->
 
-        function createClan() {
-            const name = document.getElementById('clan-name-input').value;
-            if (name) socket.emit('create_clan', name);
-        }
-        socket.on('clan_status', (clan) => {
-            if (clan) {
-                document.getElementById('clan-view-none').classList.add('hidden');
-                document.getElementById('clan-view-active').classList.remove('hidden');
-                document.getElementById('my-clan-title').innerText = 'Клан: ' + clan.name;
-                let html = '';
-                clan.messages.forEach(m => {
-                    html += `<div><b>${m.user}:</b>${m.text}</div>`;
-                });
-                const box = document.getElementById('clan-chat-msgs');
-                box.innerHTML = html;
-                box.scrollTop = box.scrollHeight;
-            } else {
-                document.getElementById('clan-view-none').classList.remove('hidden');
-                document.getElementById('clan-view-active').classList.add('hidden');
-            }
-        });
-        function sendClanMsg() {
-            const text = document.getElementById('clan-msg-input').value;
-            if (text) {
-                socket.emit('clan_msg', text);
-                document.getElementById('clan-msg-input').value = '';
-            }
-        }
+        <img
+        id="chicken"
+        src="https://via.placeholder.com/300?text=CHICKEN"
+        alt="Chicken">
 
-        function switchTab(tab) {
-            if (tab === 'shop') {
-                document.getElementById('tab-shop-content').classList.remove('hidden');
-                document.getElementById('tab-inv-content').classList.add('hidden');
-                document.getElementById('btn-tab-shop').style.background = '#ff9800';
-                document.getElementById('btn-tab-inv').style.background = '#444';
-            } else {
-                document.getElementById('tab-shop-content').classList.add('hidden');
-                document.getElementById('tab-inv-content').classList.remove('hidden');
-                document.getElementById('btn-tab-shop').style.background = '#444';
-                document.getElementById('btn-tab-inv').style.background = '#ff9800';
-            }
-        }
+    </div>
 
-        function buildShopAndInv() {
-            let shopHtml = '';
-            let invHtml = '';
-            for (let i = 1; i <= 50; i++) {
-                const skinId = 'skin_' + i;
-                const skinName = 'Гармата/Скін #' + i;
-                const price = i * 100;
-                const owned = myData.inventory.includes(skinId);
-                const equipped = myData.skin === skinId;
 
-                shopHtml += `<div class="item-card">
-                    <div>${skinName}</div>
-                    <div>${price} 🪙</div>${owned ? '<span style="color:green">Куплено</span>' : `<button onclick="buySkin('${skinId}', ${price})">Купити</button>`}
-                </div>`;
+    <h3>
+        +0.1 🪙
+    </h3>
 
-                if (owned) {
-                    invHtml += `<div class="item-card">
-                        <div>${skinName}</div>${equipped ? '<span style="color:orange">Використовується</span>' : `<button onclick="equipSkin('${skinId}')">Обрати</button>`}
-                    </div>`;
-                }
-            }
-            document.getElementById('tab-shop-content').innerHTML = shopHtml;
-            document.getElementById('tab-inv-content').innerHTML = invHtml;
-        }
 
-        function buySkin(id, price) {
-            socket.emit('buy_skin', { id, price });
-        }
-        function equipSkin(id) {
-            socket.emit('equip_skin', id);
-        }
-    </script>
+    <p>
+
+        👆 Кліків:
+
+        <span id="clicks">
+            0
+        </span>
+
+    </p>
+
+</section>
+
+
+<!-- PvP -->
+
+<section
+id="pvpPage"
+class="page">
+
+<h2>⚔️ PvP</h2>
+
+<p>
+Змагання з реальним гравцем.
+</p>
+
+<p>
+Хто більше наклікає за 2 хвилини —
+перемагає!
+</p>
+
+<button onclick="findPvp()">
+
+    🔎 Знайти гравця
+
+</button>
+
+
+<div
+id="pvpGame"
+class="hidden">
+
+    <h1>
+
+        ⏱️
+
+        <span id="pvpTimer">
+            120
+        </span>
+
+    </h1>
+
+
+    <p>
+
+        Твій результат:
+
+        <span id="myPvpScore">
+            0.0
+        </span>
+
+    </p>
+
+
+    <p>
+
+        Суперник:
+
+        <span id="enemyPvpScore">
+            0.0
+        </span>
+
+    </p>
+
+
+    <button
+    id="pvpClickButton">
+
+        🐔 КЛІКАТИ!
+
+    </button>
+
+</div>
+
+</section>
+
+
+<!-- TOP -->
+
+<section
+id="topPage"
+class="page">
+
+<h2>🏆 Топ-100</h2>
+
+<div id="topPlayers">
+</div>
+
+
+<h2>🛡️ Топ кланів</h2>
+
+<div id="topClans">
+</div>
+
+</section>
+
+
+<!-- FRIENDS -->
+
+<section
+id="friendsPage"
+class="page">
+
+<h2>👥 Друзі</h2>
+
+
+<input
+id="friendId"
+placeholder="ID гравця">
+
+
+<button
+onclick="addFriend()">
+
+➕ Додати
+
+</button>
+
+
+<button
+onclick="loadFriends()">
+
+🔄 Оновити
+
+</button>
+
+
+<div id="friendsList">
+</div>
+
+</section>
+
+
+<!-- CLANS -->
+
+<section
+id="clansPage"
+class="page">
+
+<h2>🛡️ Клани</h2>
+
+<p>
+Створення: 5000 🪙
+</p>
+
+
+<input
+id="clanName"
+placeholder="Назва клану">
+
+
+<button
+onclick="createClan()">
+
+Створити клан
+
+</button>
+
+
+<div id="clanInfo">
+</div>
+
+
+<div
+id="clanChat"
+class="hidden">
+
+<h3>
+💬 Чат клану
+</h3>
+
+
+<div id="messages">
+</div>
+
+
+<input
+id="messageInput"
+placeholder="Написати повідомлення">
+
+
+<button
+onclick="sendClanMessage()">
+
+➤ Відправити
+
+</button>
+
+</div>
+
+</section>
+
+
+<!-- SHOP -->
+
+<section
+id="shopPage"
+class="page">
+
+<h2>🛒 Магазин</h2>
+
+<div id="shopItems">
+</div>
+
+</section>
+
+
+<!-- INVENTORY -->
+
+<section
+id="inventoryPage"
+class="page">
+
+<h2>🎒 Інвентар</h2>
+
+<div id="inventory">
+</div>
+
+</section>
+
+
+<!-- PROFILE -->
+
+<section
+id="profilePage"
+class="page">
+
+<h2>👤 Профіль</h2>
+
+
+<div class="profile">
+
+    <h2
+    id="profileName">
+
+        ChickenPlayer
+
+    </h2>
+
+
+    <p>
+
+        🆔 ID:
+
+        <span id="playerId">
+        </span>
+
+    </p>
+
+
+    <p>
+
+        👆 Кліків:
+
+        <span id="profileClicks">
+        </span>
+
+    </p>
+
+
+    <p>
+
+        💰 Зароблено:
+
+        <span id="earnedCoins">
+        </span>
+
+    </p>
+
+
+    <p>
+
+        🛒 Потрачено:
+
+        <span id="spentCoins">
+        </span>
+
+    </p>
+
+
+    <p>
+
+        🏆 Кубків:
+
+        <span id="profileTrophies">
+        </span>
+
+    </p>
+
+</div>
+
+
+<h3>
+✏️ Змінити нік
+</h3>
+
+
+<input
+id="nicknameInput"
+placeholder="Новий нік">
+
+
+<input
+type="color"
+id="nicknameColor"
+value="#ffffff">
+
+
+<button
+onclick="changeNickname()">
+
+💾 Зберегти
+
+</button>
+
+
+<br>
+
+
+<button
+class="danger"
+onclick="resetProgress()">
+
+🗑️ Скинути прогрес
+
+</button>
+
+</section>
+
+
+<!-- BONUS -->
+
+<section
+id="bonusPage"
+class="page">
+
+<h2>
+🎟️ Промокоди
+</h2>
+
+
+<input
+id="promoInput"
+placeholder="Промокод">
+
+
+<button
+onclick="usePromo()">
+
+Активувати
+
+</button>
+
+
+<hr>
+
+
+<h2>
+🎁 Щоденна нагорода
+</h2>
+
+
+<p>
+
+День:
+
+<span id="dailyDay">
+1
+</span>
+
+</p>
+
+
+<p>
+
+Нагорода:
+
+<span id="dailyReward">
+10
+</span>
+
+🪙
+
+</p>
+
+
+<button
+onclick="claimDaily()">
+
+Забрати
+
+</button>
+
+</section>
+
+
+<nav>
+
+<button
+onclick="openPage('gamePage')">
+
+🐔<br>Гра
+
+</button>
+
+
+<button
+onclick="openPage('pvpPage')">
+
+⚔️<br>PvP
+
+</button>
+
+
+<button
+onclick="openPage('topPage')">
+
+🏆<br>Топ
+
+</button>
+
+
+<button
+onclick="openPage('friendsPage')">
+
+👥<br>Друзі
+
+</button>
+
+
+<button
+onclick="openPage('clansPage')">
+
+🛡️<br>Клани
+
+</button>
+
+
+<button
+onclick="openPage('shopPage')">
+
+🛒<br>Магазин
+
+</button>
+
+
+<button
+onclick="openPage('inventoryPage')">
+
+🎒<br>Інвентар
+
+</button>
+
+
+<button
+onclick="openPage('bonusPage')">
+
+🎁<br>Бонус
+
+</button>
+
+</nav>
+
+
+</div>
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script src="script.js"></script>
+
+
 </body>
-  </html>
-              
+            </html>
