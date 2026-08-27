@@ -2002,13 +2002,11 @@ setupDatabase()
         );
 
 
-        server.listen(
-            PORT,
-            () => {
+        const PORT = process.env.PORT || 3000;
 
-                console.log(
-                    "ChickenClick працює на порту " +
-                    PORT
+server.listen(PORT, "0.0.0.0", () => {
+    console.log(`ChickenClick server running on port ${PORT}`);
+});
                 );
 
             }
