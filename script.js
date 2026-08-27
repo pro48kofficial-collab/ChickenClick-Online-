@@ -235,6 +235,7 @@ function checkTop1(user) {
     }
 }
 
-server.listen(3000, () => {
-    console.log('Chicken Clicker Online запущено на порту 3000!');
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Сервер успішно запущено на порту ${PORT}!`);
 });
