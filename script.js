@@ -1,17 +1,13 @@
 const socket = io();
 
 let player = null;
+let currentPvpRoom = null;
+let pvpInterval = null;
 
-let playerId =
-    localStorage.getItem(
-        "chickenPlayerId"
-    );
-
+let playerId = localStorage.getItem("chickenPlayerId");
 
 if (!playerId) {
-
-    playerId =
-        crypto.randomUUID();
+    playerId = crypto.randomUUID();
 
     localStorage.setItem(
         "chickenPlayerId",
@@ -20,89 +16,106 @@ if (!playerId) {
 }
 
 
-let currentPvpRoom = null;
-
+/* =========================
+   SKINS
+========================= */
 
 const skins = [];
 
-
 for (let i = 1; i <= 50; i++) {
-
     skins.push({
-
         id: i,
-
-        name:
-            "🔫 Скін #" + i,
-
-        price:
-            i * 100
-
+        name: "🔫 Скін #" + i,
+        price: i * 100
     });
-
 }
 
 
-/* LOGIN */
+/* =========================
+   LOGIN
+========================= */
 
-socket.emit(
-    "login",
-    playerId
-);
-
-
-socket.on(
-    "playerData",
-    data => {
-
-        player = data;
-
-        renderPlayer();
-
-    }
-);
+socket.emit("login", playerId);
 
 
-socket.on(
-    "errorMessage",
-    message => {
+socket.on("playerData", data => {
 
-        alert(message);
+    player = data;
 
-    }
-);
+    renderPlayer();
 
-
-socket.on(
-    "successMessage",
-    message => {
-
-        alert(message);
-
-    }
-);
+});
 
 
-/* START */
+/* =========================
+   MESSAGES
+========================= */
 
-setTimeout(() => {
-
-    document
-        .getElementById("loading")
-        .style.display = "none";
-
-
-    document
-        .getElementById("game")
-        .style.display = "block";
-
-}, 1000);
+socket.on("errorMessage", message => {
+    showToast("❌ " + message);
+});
 
 
-/* PAGES */
+socket.on("successMessage", message => {
+    showToast("✅ " + message);
+});
 
-window.openPage =
-function(id) {
+
+/* =========================
+   LOADING
+========================= */
+
+window.addEventListener("load", () => {
+
+    setTimeout(() => {
+
+        const loading =
+            document.getElementById(
+                "loadingScreen"
+            );
+
+        const game =
+            document.getElementById(
+                "game"
+            );
+
+        if (loading) {
+            loading.classList.add("hidden");
+        }
+
+        if (game) {
+            game.classList.remove("hidden");
+        }
+
+    }, 1000);
+
+});
+
+
+/* =========================
+   NAVIGATION
+========================= */
+
+document
+    .querySelectorAll(".nav-button")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                const page =
+                    button.dataset.page;
+
+                openPage(page);
+
+            }
+        );
+
+    });
+
+
+function openPage(id) {
 
     document
         .querySelectorAll(".page")
@@ -115,59 +128,110 @@ function(id) {
         });
 
 
+    const page =
+        document.getElementById(id);
+
+
+    if (page) {
+        page.classList.add("active");
+    }
+
+
     document
-        .getElementById(id)
-        .classList.add(
-            "active"
-        );
+        .querySelectorAll(".nav-button")
+        .forEach(button => {
+
+            button.classList.remove(
+                "active"
+            );
+
+            if (
+                button.dataset.page === id
+            ) {
+
+                button.classList.add(
+                    "active"
+                );
+
+            }
+
+        });
 
 
     if (id === "topPage") {
-
-        socket.emit(
-            "getTopClans"
-        );
-
+        socket.emit("getTopClans");
     }
 
 
     if (id === "friendsPage") {
+        socket.emit("getFriends");
+    }
 
-        loadFriends();
+
+    if (id === "clansPage") {
+
+        if (
+            player &&
+            player.clanId
+        ) {
+
+            socket.emit(
+                "joinClanRoom"
+            );
+
+            loadMyClan();
+
+        }
 
     }
 
 
-    if (
-        id === "clansPage" &&
-        player &&
-        player.clanId
-    ) {
+    if (id === "clanChatPage") {
 
         socket.emit(
             "joinClanRoom"
         );
 
-        showClanChat();
-
     }
 
-};
+}
 
 
-/* RENDER */
+/* =========================
+   PROFILE BUTTON
+========================= */
+
+document
+    .getElementById("profileButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            openPage("profilePage");
+
+        }
+    );
+
+
+/* =========================
+   RENDER PLAYER
+========================= */
 
 function renderPlayer() {
 
     if (!player) return;
 
 
+    /* COINS */
+
     document
         .getElementById("coins")
         .textContent =
         Number(player.coins)
-        .toFixed(1);
+            .toFixed(1);
 
+
+    /* TROPHIES */
 
     document
         .getElementById("trophies")
@@ -175,67 +239,86 @@ function renderPlayer() {
         player.trophies;
 
 
+    /* CLICKS */
+
     document
         .getElementById("clicks")
         .textContent =
         player.clicks;
 
 
-    document
-        .getElementById("playerNickname")
-        .textContent =
+    /* MINI NICK */
+
+    const miniNickname =
+        document.getElementById(
+            "miniNickname"
+        );
+
+    miniNickname.textContent =
         player.nickname;
 
-
-    document
-        .getElementById("playerNickname")
-        .style.color =
+    miniNickname.style.color =
         player.nicknameColor;
 
 
-    document
-        .getElementById("profileName")
-        .textContent =
-        player.nickname;
-
-
-    document
-        .getElementById("profileName")
-        .style.color =
-        player.nicknameColor;
-
+    /* ID */
 
     document
         .getElementById("playerId")
         .textContent =
-        playerId;
+        "ID: " + player.id;
+
+
+    /* PROFILE */
+
+    document
+        .getElementById("profileNickname")
+        .textContent =
+        player.nickname;
+
+    document
+        .getElementById("profileNickname")
+        .style.color =
+        player.nicknameColor;
 
 
     document
-        .getElementById("profileClicks")
+        .getElementById("profileId")
+        .textContent =
+        player.id;
+
+
+    /* STATS */
+
+    document
+        .getElementById("statClicks")
         .textContent =
         player.clicks;
 
 
     document
-        .getElementById("earnedCoins")
+        .getElementById("statEarned")
         .textContent =
-        Number(player.earnedCoins)
-        .toFixed(1);
+        Number(
+            player.earnedCoins
+        ).toFixed(1);
 
 
     document
-        .getElementById("spentCoins")
+        .getElementById("statSpent")
         .textContent =
-        Number(player.spentCoins)
-        .toFixed(1);
+        Number(
+            player.spentCoins
+        ).toFixed(1);
 
 
     document
-        .getElementById("profileTrophies")
+        .getElementById("statTrophies")
         .textContent =
         player.trophies;
 
+
+    /* DAILY */
 
     document
         .getElementById("dailyDay")
@@ -246,126 +329,224 @@ function renderPlayer() {
     document
         .getElementById("dailyReward")
         .textContent =
-        player.dailyDay * 10;
+        "+" +
+        (
+            player.dailyDay * 10
+        ) +
+        " 🪙";
 
 
     renderShop();
 
     renderInventory();
 
+    loadMyClan();
+
 }
 
 
-/* CLICK */
+/* =========================
+   CHICKEN CLICK
+========================= */
 
 document
-    .getElementById("chicken")
+    .getElementById(
+        "chickenButton"
+    )
     .addEventListener(
         "click",
-        () => {
+        event => {
 
             socket.emit(
                 "clickChicken"
+            );
+
+
+            createClickEffect(
+                event
             );
 
         }
     );
 
 
-/* NICKNAME */
+function createClickEffect(event) {
 
-window.changeNickname =
-function() {
-
-    const nickname =
-        document
-            .getElementById(
-                "nicknameInput"
-            )
-            .value;
+    const container =
+        document.getElementById(
+            "clickEffectContainer"
+        );
 
 
-    const color =
-        document
-            .getElementById(
-                "nicknameColor"
-            )
-            .value;
+    const effect =
+        document.createElement(
+            "span"
+        );
 
 
-    socket.emit(
-        "changeNickname",
-        {
-            nickname,
-            color
+    effect.textContent =
+        "+0.1 🪙";
+
+
+    effect.className =
+        "click-effect";
+
+
+    effect.style.left =
+        event.offsetX + "px";
+
+
+    effect.style.top =
+        event.offsetY + "px";
+
+
+    container.appendChild(
+        effect
+    );
+
+
+    setTimeout(() => {
+
+        effect.remove();
+
+    }, 700);
+
+}
+
+
+/* =========================
+   NICKNAME
+========================= */
+
+document
+    .getElementById(
+        "saveNicknameButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            const nickname =
+                document
+                    .getElementById(
+                        "nicknameInput"
+                    )
+                    .value
+                    .trim();
+
+
+            const color =
+                document
+                    .getElementById(
+                        "nicknameColorInput"
+                    )
+                    .value;
+
+
+            socket.emit(
+                "changeNickname",
+                {
+                    nickname,
+                    color
+                }
+            );
+
         }
     );
 
-};
+
+/* =========================
+   PROMO
+========================= */
+
+document
+    .getElementById(
+        "usePromoButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            const input =
+                document.getElementById(
+                    "promoInput"
+                );
 
 
-/* PROMO */
-
-window.usePromo =
-function() {
-
-    const code =
-        document
-            .getElementById(
-                "promoInput"
-            )
-            .value;
+            const code =
+                input.value.trim();
 
 
-    socket.emit(
-        "usePromo",
-        code
+            if (!code) return;
+
+
+            socket.emit(
+                "usePromo",
+                code
+            );
+
+
+            input.value = "";
+
+        }
     );
 
-};
 
+/* =========================
+   DAILY
+========================= */
 
-/* DAILY */
+document
+    .getElementById(
+        "claimDailyButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
 
-window.claimDaily =
-function() {
+            socket.emit(
+                "claimDaily"
+            );
 
-    socket.emit(
-        "claimDaily"
+        }
     );
 
-};
+
+/* =========================
+   FRIENDS
+========================= */
+
+document
+    .getElementById(
+        "addFriendButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            const input =
+                document.getElementById(
+                    "friendIdInput"
+                );
 
 
-/* FRIENDS */
-
-window.addFriend =
-function() {
-
-    const id =
-        document
-            .getElementById(
-                "friendId"
-            )
-            .value;
+            const id =
+                input.value.trim();
 
 
-    socket.emit(
-        "addFriend",
-        id
+            if (!id) return;
+
+
+            socket.emit(
+                "addFriend",
+                id
+            );
+
+
+            input.value = "";
+
+        }
     );
-
-};
-
-
-window.loadFriends =
-function() {
-
-    socket.emit(
-        "getFriends"
-    );
-
-};
 
 
 socket.on(
@@ -373,126 +554,260 @@ socket.on(
     friends => {
 
         const container =
-            document
-                .getElementById(
-                    "friendsList"
-                );
+            document.getElementById(
+                "friendsList"
+            );
 
 
         container.innerHTML = "";
 
 
-        friends.forEach(friend => {
+        if (!friends.length) {
 
-            container.innerHTML += `
+            container.innerHTML =
+                `
+                <div class="empty">
+                    👥 Друзів поки немає
+                </div>
+                `;
 
-                <div class="friendItem">
+            return;
 
-                    <b
-                    style="
-                    color:${friend.nicknameColor}
+        }
+
+
+        friends.forEach(
+            friend => {
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                item.className =
+                    "friend-item";
+
+
+                item.innerHTML = `
+                    <b style="
+                        color:${friend.nicknameColor}
                     ">
-
-                        ${friend.nickname}
-
+                        ${escapeHTML(
+                            friend.nickname
+                        )}
                     </b>
 
                     <br>
 
-                    🏆
-                    ${friend.trophies}
+                    🏆 ${friend.trophies}
 
                     <br>
 
                     <small>
-
-                        ID:
-                        ${friend.id}
-
+                        ID: ${escapeHTML(
+                            friend.id
+                        )}
                     </small>
+                `;
 
-                </div>
 
-            `;
+                container.appendChild(
+                    item
+                );
 
-        });
+            }
+        );
 
     }
 );
 
 
-/* CLANS */
+/* =========================
+   CLANS
+========================= */
 
-window.createClan =
-function() {
+document
+    .getElementById(
+        "createClanButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
 
-    const name =
-        document
-            .getElementById(
-                "clanName"
-            )
-            .value;
+            const input =
+                document.getElementById(
+                    "clanNameInput"
+                );
 
 
-    socket.emit(
-        "createClan",
-        name
+            const name =
+                input.value.trim();
+
+
+            if (!name) return;
+
+
+            socket.emit(
+                "createClan",
+                name
+            );
+
+        }
     );
-
-};
 
 
 socket.on(
     "clanCreated",
     clan => {
 
-        document
-            .getElementById(
-                "clanInfo"
-            )
-            .innerHTML = `
-
-                <h3>
-                    🛡️ ${clan.name}
-                </h3>
-
-            `;
+        showToast(
+            "🛡️ Клан створено!"
+        );
 
 
-        showClanChat();
+        loadMyClan();
+
+
+        openPage(
+            "clansPage"
+        );
 
     }
 );
 
 
-function showClanChat() {
+function loadMyClan() {
 
-    document
-        .getElementById(
-            "clanChat"
-        )
-        .classList.remove(
+    if (!player) return;
+
+
+    const clanBox =
+        document.getElementById(
+            "myClan"
+        );
+
+
+    const createBox =
+        document.getElementById(
+            "clanCreateBox"
+        );
+
+
+    if (!player.clanId) {
+
+        clanBox.classList.add(
             "hidden"
         );
+
+        createBox.classList.remove(
+            "hidden"
+        );
+
+        return;
+
+    }
+
+
+    createBox.classList.add(
+        "hidden"
+    );
+
+
+    clanBox.classList.remove(
+        "hidden"
+    );
+
+
+    socket.emit(
+        "joinClanRoom"
+    );
 
 }
 
 
-window.sendClanMessage =
-function() {
+/* =========================
+   CLAN CHAT
+========================= */
 
-    const input =
-        document
-            .getElementById(
-                "messageInput"
+document
+    .getElementById(
+        "joinClanChatButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            if (
+                !player ||
+                !player.clanId
+            ) {
+
+                showToast(
+                    "❌ Ти не в клані"
+                );
+
+                return;
+
+            }
+
+
+            socket.emit(
+                "joinClanRoom"
             );
 
 
+            openPage(
+                "clanChatPage"
+            );
+
+        }
+    );
+
+
+document
+    .getElementById(
+        "sendClanMessageButton"
+    )
+    .addEventListener(
+        "click",
+        sendClanMessage
+    );
+
+
+document
+    .getElementById(
+        "clanMessageInput"
+    )
+    .addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                sendClanMessage();
+
+            }
+
+        }
+    );
+
+
+function sendClanMessage() {
+
+    const input =
+        document.getElementById(
+            "clanMessageInput"
+        );
+
+
     const text =
-        input.value;
+        input.value.trim();
 
 
-    if (!text.trim()) return;
+    if (!text) return;
 
 
     socket.emit(
@@ -503,60 +818,68 @@ function() {
 
     input.value = "";
 
-};
+}
 
 
 socket.on(
     "clanMessage",
     message => {
 
-        const messages =
-            document
-                .getElementById(
-                    "messages"
-                );
+        const container =
+            document.getElementById(
+                "clanMessages"
+            );
 
 
-        messages.innerHTML += `
+        const item =
+            document.createElement(
+                "div"
+            );
 
-            <div class="message">
 
-                <b
-                style="
+        item.className =
+            "message";
+
+
+        item.innerHTML = `
+            <b style="
                 color:${message.color}
-                ">
-
-                    ${message.nickname}
-
-                </b>
-
-                :
-
-                ${message.text}
-
-            </div>
-
+            ">
+                ${escapeHTML(
+                    message.nickname
+                )}
+            </b>
+            :
+            ${escapeHTML(
+                message.text
+            )}
         `;
 
 
-        messages.scrollTop =
-            messages.scrollHeight;
+        container.appendChild(
+            item
+        );
+
+
+        container.scrollTop =
+            container.scrollHeight;
 
     }
 );
 
 
-/* TOP */
+/* =========================
+   TOP PLAYERS
+========================= */
 
 socket.on(
     "topPlayers",
     players => {
 
         const container =
-            document
-                .getElementById(
-                    "topPlayers"
-                );
+            document.getElementById(
+                "topPlayers"
+            );
 
 
         container.innerHTML = "";
@@ -565,36 +888,38 @@ socket.on(
         players.forEach(
             (p, index) => {
 
-                container.innerHTML += `
+                const item =
+                    document.createElement(
+                        "div"
+                    );
 
-                    <div class="topItem">
 
-                        <span>
+                item.className =
+                    "top-item";
 
-                            #${index + 1}
 
-                            <b
-                            style="
+                item.innerHTML = `
+                    <span>
+                        #${index + 1}
+
+                        <b style="
                             color:${p.nicknameColor}
-                            ">
+                        ">
+                            ${escapeHTML(
+                                p.nickname
+                            )}
+                        </b>
+                    </span>
 
-                                ${p.nickname}
-
-                            </b>
-
-                        </span>
-
-
-                        <span>
-
-                            🏆
-                            ${p.trophies}
-
-                        </span>
-
-                    </div>
-
+                    <span>
+                        🏆 ${p.trophies}
+                    </span>
                 `;
+
+
+                container.appendChild(
+                    item
+                );
 
             }
         );
@@ -602,48 +927,69 @@ socket.on(
     }
 );
 
+
+/* =========================
+   TOP CLANS
+========================= */
 
 socket.on(
     "topClans",
     clans => {
 
         const container =
-            document
-                .getElementById(
-                    "topClans"
-                );
+            document.getElementById(
+                "topClans"
+            );
 
 
         container.innerHTML = "";
 
 
+        if (!clans.length) {
+
+            container.innerHTML =
+                `
+                <div class="empty">
+                    🛡️ Кланів поки немає
+                </div>
+                `;
+
+            return;
+
+        }
+
+
         clans.forEach(
             (clan, index) => {
 
-                container.innerHTML += `
-
-                    <div class="topItem">
-
-                        <span>
-
-                            #${index + 1}
-
-                            🛡️
-                            ${clan.name}
-
-                        </span>
+                const item =
+                    document.createElement(
+                        "div"
+                    );
 
 
-                        <span>
+                item.className =
+                    "top-item";
 
-                            🏆
-                            ${clan.trophies}
 
-                        </span>
+                item.innerHTML = `
+                    <span>
+                        #${index + 1}
+                        🛡️
+                        ${escapeHTML(
+                            clan.name
+                        )}
+                    </span>
 
-                    </div>
-
+                    <span>
+                        🏆 ${clan.trophies}
+                    </span>
                 `;
+
+
+                container.appendChild(
+                    item
+                );
 
             }
         );
@@ -652,24 +998,32 @@ socket.on(
 );
 
 
-/* PvP */
+/* =========================
+   PVP
+========================= */
 
-window.findPvp =
-function() {
+document
+    .getElementById(
+        "findPvpButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
 
-    socket.emit(
-        "findPvp"
+            socket.emit(
+                "findPvp"
+            );
+
+        }
     );
-
-};
 
 
 socket.on(
     "pvpWaiting",
     () => {
 
-        alert(
-            "🔎 Пошук суперника..."
+        showToast(
+            "🔎 Шукаємо суперника..."
         );
 
     }
@@ -686,11 +1040,36 @@ socket.on(
 
         document
             .getElementById(
+                "pvpLobby"
+            )
+            .classList.add(
+                "hidden"
+            );
+
+
+        document
+            .getElementById(
                 "pvpGame"
             )
             .classList.remove(
                 "hidden"
             );
+
+
+        document
+            .getElementById(
+                "myPvpScore"
+            )
+            .textContent =
+            "0";
+
+
+        document
+            .getElementById(
+                "enemyPvpScore"
+            )
+            .textContent =
+            "0";
 
 
         startPvpTimer(
@@ -725,27 +1104,26 @@ socket.on(
     "pvpUpdate",
     scores => {
 
-        const ids =
-            Object.keys(scores);
-
-
-        let myScore =
+        const myScore =
             scores[playerId] || 0;
 
 
         let enemyScore = 0;
 
 
-        ids.forEach(id => {
+        Object.keys(scores)
+            .forEach(id => {
 
-            if (id !== playerId) {
+                if (
+                    id !== playerId
+                ) {
 
-                enemyScore =
-                    scores[id];
+                    enemyScore =
+                        scores[id];
 
-            }
+                }
 
-        });
+            });
 
 
         document
@@ -753,7 +1131,9 @@ socket.on(
                 "myPvpScore"
             )
             .textContent =
-            myScore.toFixed(1);
+            Number(
+                myScore
+            ).toFixed(1);
 
 
         document
@@ -761,13 +1141,12 @@ socket.on(
                 "enemyPvpScore"
             )
             .textContent =
-            enemyScore.toFixed(1);
+            Number(
+                enemyScore
+            ).toFixed(1);
 
     }
 );
-
-
-let pvpInterval;
 
 
 function startPvpTimer(time) {
@@ -777,29 +1156,37 @@ function startPvpTimer(time) {
     );
 
 
+    const timer =
+        document.getElementById(
+            "pvpTimer"
+        );
+
+
+    timer.textContent =
+        time;
+
+
     pvpInterval =
-        setInterval(() => {
+        setInterval(
+            () => {
 
-            time--;
+                time--;
 
-
-            document
-                .getElementById(
-                    "pvpTimer"
-                )
-                .textContent =
-                time;
+                timer.textContent =
+                    time;
 
 
-            if (time <= 0) {
+                if (time <= 0) {
 
-                clearInterval(
-                    pvpInterval
-                );
+                    clearInterval(
+                        pvpInterval
+                    );
 
-            }
+                }
 
-        }, 1000);
+            },
+            1000
+        );
 
 }
 
@@ -813,7 +1200,8 @@ socket.on(
         );
 
 
-        currentPvpRoom = null;
+        currentPvpRoom =
+            null;
 
 
         document
@@ -825,9 +1213,18 @@ socket.on(
             );
 
 
+        document
+            .getElementById(
+                "pvpLobby"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+
         if (!data.winner) {
 
-            alert(
+            showToast(
                 "🤝 Нічия!"
             );
 
@@ -840,13 +1237,13 @@ socket.on(
             data.winner === playerId
         ) {
 
-            alert(
-                "🎉 ТИ ПЕРЕМІГ!\n+5 🏆"
+            showToast(
+                "🎉 ТИ ПЕРЕМІГ! +5 🏆"
             );
 
         } else {
 
-            alert(
+            showToast(
                 "😢 Ти програв!"
             );
 
@@ -856,119 +1253,263 @@ socket.on(
 );
 
 
-/* SHOP */
+/* =========================
+   SHOP
+========================= */
 
 function renderShop() {
 
     if (!player) return;
 
 
-    const shop =
-        document
-            .getElementById(
-                "shopItems"
-            );
+    const container =
+        document.getElementById(
+            "shopItems"
+        );
 
 
-    shop.innerHTML = "";
+    container.innerHTML = "";
 
 
-    skins.forEach(skin => {
+    skins.forEach(
+        skin => {
 
-        const owned =
-            player.inventory
-            .includes(skin.id);
+            const owned =
+                player.inventory
+                    .includes(
+                        skin.id
+                    );
 
 
-        shop.innerHTML += `
+            const item =
+                document.createElement(
+                    "div"
+                );
 
-            <div class="shopItem">
+
+            item.className =
+                "shop-item";
+
+
+            item.innerHTML = `
+
+                <div class="skin-icon">
+                    🔫
+                </div>
 
                 <h3>
                     ${skin.name}
                 </h3>
 
                 <p>
-                    ${skin.price} 🪙
+                    🪙 ${skin.price}
                 </p>
 
-                <button disabled>
-
+                <button
+                    class="buy-skin"
+                    data-id="${skin.id}"
+                    ${owned ? "disabled" : ""}
+                >
                     ${
                         owned
-                            ? "Куплено"
-                            : "Поки що серверний магазин"
+                            ? "В інвентарі"
+                            : "Купити"
                     }
-
                 </button>
 
-            </div>
+            `;
 
-        `;
 
-    });
+            container.appendChild(
+                item
+            );
+
+        }
+    );
+
+
+    document
+        .querySelectorAll(
+            ".buy-skin"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        showToast(
+                            "🛒 Система покупки скінів буде підключена сервером."
+                        );
+
+                    }
+                );
+
+            }
+        );
 
 }
 
+
+/* =========================
+   INVENTORY
+========================= */
 
 function renderInventory() {
 
     if (!player) return;
 
 
-    const inventory =
-        document
-            .getElementById(
-                "inventory"
-            );
+    const container =
+        document.getElementById(
+            "inventoryItems"
+        );
 
 
-    inventory.innerHTML = "";
+    container.innerHTML = "";
 
 
     if (
-        !player.inventory.length
+        !player.inventory ||
+        player.inventory.length === 0
     ) {
 
-        inventory.innerHTML =
-            "<p>🎒 Інвентар порожній</p>";
+        container.innerHTML =
+            `
+            <div class="empty">
+                🎒 Інвентар порожній
+            </div>
+            `;
 
         return;
 
     }
 
 
-    player.inventory.forEach(id => {
+    player.inventory.forEach(
+        id => {
 
-        const skin =
-            skins.find(
-                skin =>
-                skin.id === id
+            const skin =
+                skins.find(
+                    s =>
+                    s.id === id
+                );
+
+
+            if (!skin) return;
+
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+
+            item.className =
+                "shop-item";
+
+
+            item.innerHTML = `
+                <div class="skin-icon">
+                    🔫
+                </div>
+
+                <h3>
+                    ${skin.name}
+                </h3>
+
+                <p>
+                    ✅ Отримано
+                </p>
+            `;
+
+
+            container.appendChild(
+                item
             );
 
-
-        inventory.innerHTML += `
-
-            <div class="shopItem">
-
-                ${skin.name}
-
-            </div>
-
-        `;
-
-    });
+        }
+    );
 
 }
 
 
-/* RESET */
+/* =========================
+   RESET
+========================= */
 
-window.resetProgress =
-function() {
+document
+    .getElementById(
+        "resetProgressButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
 
-    alert(
-        "Скидання прогресу буде додано окремою серверною командою."
+            const confirmed =
+                confirm(
+                    "⚠️ Точно скинути весь прогрес?"
+                );
+
+
+            if (!confirmed) return;
+
+
+            socket.emit(
+                "resetProgress"
+            );
+
+        }
     );
 
-};
+
+/* =========================
+   TOAST
+========================= */
+
+function showToast(message) {
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+
+    toast.textContent =
+        message;
+
+
+    toast.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        () => {
+
+            toast.classList.remove(
+                "show"
+            );
+
+        },
+        2500
+    );
+
+}
+
+
+/* =========================
+   HTML SECURITY
+========================= */
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
