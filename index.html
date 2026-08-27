@@ -1,589 +1,1035 @@
 <!DOCTYPE html>
 <html lang="uk">
-
 <head>
+    <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0">
+    <title>ChickenClick</title>
 
-<title>ChickenClick Online</title>
-
-<link
-rel="stylesheet"
-href="style.css">
-
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
-
 
 <body>
 
+    <!-- =========================
+         ЗАВАНТАЖЕННЯ
+    ========================== -->
 
-<div id="loading">
+    <div
+        id="loadingScreen"
+        class="loading-screen"
+    >
 
-    <div class="loadingChicken">
-        🐔
-    </div>
-
-    <h1>CHICKENCLICK</h1>
-
-    <p>Підключення до сервера...</p>
-
-</div>
-
-
-<div id="game">
-
-
-<header>
-
-    <div>
-
-        <b>
-            🐔 CHICKENCLICK
-        </b>
-
-        <div id="playerNickname">
-            ChickenPlayer
+        <div class="loading-logo">
+            🐔
         </div>
 
-    </div>
+        <h1>
+            ChickenClick
+        </h1>
 
-
-    <button
-    onclick="openPage('profilePage')">
-
-        👤
-
-    </button>
-
-</header>
-
-
-<!-- GAME -->
-
-<section
-id="gamePage"
-class="page active">
-
-    <div class="stats">
-
-        <div>
-            🪙
-            <span id="coins">
-                0.0
-            </span>
+        <div class="loading-bar">
+            <div
+                id="loadingProgress"
+                class="loading-progress"
+            ></div>
         </div>
 
-        <div>
-            🏆
-            <span id="trophies">
-                0
-            </span>
-        </div>
+        <p id="loadingText">
+            Завантаження...
+        </p>
 
     </div>
 
 
-    <div class="chickenBox">
+    <!-- =========================
+         ОСНОВНА ГРА
+    ========================== -->
 
-        <!-- ВСТАВ СВОЄ ПОСИЛАННЯ -->
+    <div
+        id="game"
+        class="game hidden"
+    >
 
-        <img
-        id="chicken"
-        src="https://via.placeholder.com/300?text=CHICKEN"
-        alt="Chicken">
+
+        <!-- =====================
+             TOP BAR
+        ====================== -->
+
+        <header class="top-bar">
+
+            <div class="player-mini">
+
+                <div
+                    id="miniAvatar"
+                    class="mini-avatar"
+                >
+                    🐔
+                </div>
+
+                <div>
+
+                    <div
+                        id="miniNickname"
+                        class="mini-nickname"
+                    >
+                        ChickenPlayer
+                    </div>
+
+                    <div
+                        id="playerId"
+                        class="player-id"
+                    >
+                        ID: ...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                id="profileButton"
+                class="profile-button"
+            >
+                👤
+            </button>
+
+        </header>
+
+
+        <!-- =====================
+             CURRENCIES
+        ====================== -->
+
+        <section class="currency-panel">
+
+            <div class="currency">
+
+                <span>
+                    🪙
+                </span>
+
+                <strong id="coins">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="currency">
+
+                <span>
+                    🏆
+                </span>
+
+                <strong id="trophies">
+                    0
+                </strong>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================
+             MAIN CLICKER
+        ====================== -->
+
+        <main
+            id="homePage"
+            class="page active"
+        >
+
+            <div class="clicker-header">
+
+                <h2>
+                    ChickenClick
+                </h2>
+
+                <p>
+                    Клікай по курці та заробляй коіни!
+                </p>
+
+            </div>
+
+
+            <div class="chicken-area">
+
+                <!--
+                    ТУТ МОЖНА ПОСТАВИТИ
+                    ТВОЄ ПОСИЛАННЯ НА КУРКУ
+
+                    Наприклад:
+
+                    src="https://site.com/chicken.png"
+                -->
+
+                <button
+                    id="chickenButton"
+                    class="chicken-button"
+                >
+
+                    <img
+                        id="chickenImage"
+                        src=""
+                        alt="Chicken"
+                        draggable="false"
+                    >
+
+                    <span
+                        id="chickenEmoji"
+                        class="chicken-placeholder"
+                    >
+                        🐔
+                    </span>
+
+                </button>
+
+
+                <div
+                    id="clickEffectContainer"
+                    class="click-effects"
+                ></div>
+
+            </div>
+
+
+            <div class="click-info">
+
+                <div>
+                    За клік:
+                    <b>+0.1 🪙</b>
+                </div>
+
+                <div>
+                    Кліків:
+                    <b id="clicks">
+                        0
+                    </b>
+                </div>
+
+            </div>
+
+        </main>
+
+
+        <!-- =====================
+             PVP
+        ====================== -->
+
+        <section
+            id="pvpPage"
+            class="page"
+        >
+
+            <div class="page-header">
+
+                <h2>
+                    ⚔️ PvP
+                </h2>
+
+                <p>
+                    Змагайся з іншим гравцем 2 хвилини!
+                </p>
+
+            </div>
+
+
+            <div
+                id="pvpLobby"
+                class="pvp-box"
+            >
+
+                <div class="pvp-icon">
+                    ⚔️
+                </div>
+
+                <h3>
+                    Готовий до бою?
+                </h3>
+
+                <p>
+                    Хто наклікає більше коінів —
+                    той переможе.
+                </p>
+
+                <button
+                    id="findPvpButton"
+                    class="main-button"
+                >
+                    Знайти суперника
+                </button>
+
+            </div>
+
+
+            <div
+                id="pvpGame"
+                class="pvp-box hidden"
+            >
+
+                <div class="pvp-timer">
+                    <span id="pvpTimer">
+                        120
+                    </span>
+                    сек
+                </div>
+
+
+                <div class="pvp-players">
+
+                    <div class="pvp-player">
+
+                        <span>
+                            Ти
+                        </span>
+
+                        <strong id="myPvpScore">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="pvp-vs">
+                        VS
+                    </div>
+
+
+                    <div class="pvp-player">
+
+                        <span>
+                            Суперник
+                        </span>
+
+                        <strong id="enemyPvpScore">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="pvpClickButton"
+                    class="pvp-click-button"
+                >
+                    🐔 КЛІК!
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================
+             TOP
+        ====================== -->
+
+        <section
+            id="topPage"
+            class="page"
+        >
+
+            <div class="page-header">
+
+                <h2>
+                    🏆 Топ гравців
+                </h2>
+
+                <p>
+                    Найкращі 100 гравців
+                </p>
+
+            </div>
+
+
+            <div
+                id="topPlayers"
+                class="top-list"
+            >
+
+                <div class="empty">
+                    Завантаження...
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================
+             FRIENDS
+        ====================== -->
+
+        <section
+            id="friendsPage"
+            class="page"
+        >
+
+            <div class="page-header">
+
+                <h2>
+                    👥 Друзі
+                </h2>
+
+                <p>
+                    Додавай реальних гравців за ID
+                </p>
+
+            </div>
+
+
+            <div class="friend-add">
+
+                <input
+                    id="friendIdInput"
+                    type="text"
+                    placeholder="ID гравця"
+                    maxlength="100"
+                >
+
+                <button
+                    id="addFriendButton"
+                    class="main-button"
+                >
+                    Додати
+                </button>
+
+            </div>
+
+
+            <div
+                id="friendsList"
+                class="friends-list"
+            >
+
+                <div class="empty">
+                    Друзів поки немає
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================
+             CLANS
+        ====================== -->
+
+        <section
+            id="clansPage"
+            class="page"
+        >
+
+            <div class="page-header">
+
+                <h2>
+                    🛡️ Клани
+                </h2>
+
+                <p>
+                    Створюй клан та грай разом
+                </p>
+
+            </div>
+
+
+            <div
+                id="clanCreateBox"
+                class="clan-create"
+            >
+
+                <input
+                    id="clanNameInput"
+                    type="text"
+                    placeholder="Назва клану"
+                    maxlength="25"
+                >
+
+                <button
+                    id="createClanButton"
+                    class="main-button"
+                >
+                    Створити за 5000 🪙
+                </button>
+
+            </div>
+
+
+            <div
+                id="myClan"
+                class="clan-card hidden"
+            >
+
+                <h3 id="myClanName">
+                    Мій клан
+                </h3>
+
+                <p>
+                    🏆 Кубки:
+                    <b id="myClanTrophies">
+                        0
+                    </b>
+                </p>
+
+                <button
+                    id="joinClanChatButton"
+                    class="main-button"
+                >
+                    💬 Відкрити чат
+                </button>
+
+            </div>
+
+
+            <h3 class="section-title">
+                🏆 Топ кланів
+            </h3>
+
+
+            <div
+                id="topClans"
+                class="top-list"
+            >
+
+                <div class="empty">
+                    Завантаження...
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================
+             CLAN CHAT
+        ====================== -->
+
+        <section
+            id="clanChatPage"
+            class="page"
+        >
+
+            <div class="page-header">
+
+                <h2>
+                    💬 Чат клану
+                </h2>
+
+            </div>
+
+
+            <div
+                id="clanMessages"
+                class="chat-messages"
+            ></div>
+
+
+            <div class="chat-input">
+
+                <input
+                    id="clanMessageInput"
+                    type="text"
+                    placeholder="Написати повідомлення..."
+                    maxlength="300"
+                >
+
+                <button
+                    id="sendClanMessageButton"
+                >
+                    ➤
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================
+             SHOP
+        ====================== -->
+
+        <section
+            id="shopPage"
+            class="page"
+        >
+
+            <div class="page-header">
+
+                <h2>
+                    🛒 Магазин
+                </h2>
+
+                <p>
+                    Купуй скіни для курки
+                </p>
+
+            </div>
+
+
+            <div
+                id="shopItems"
+                class="skin-grid"
+            ></div>
+
+        </section>
+
+
+        <!-- =====================
+             INVENTORY
+        ====================== -->
+
+        <section
+            id="inventoryPage"
+            class="page"
+        >
+
+            <div class="page-header">
+
+                <h2>
+                    🎒 Інвентар
+                </h2>
+
+                <p>
+                    Твої отримані скіни
+                </p>
+
+            </div>
+
+
+            <div
+                id="inventoryItems"
+                class="skin-grid"
+            ></div>
+
+        </section>
+
+
+        <!-- =====================
+             PROFILE
+        ====================== -->
+
+        <section
+            id="profilePage"
+            class="page"
+        >
+
+            <div class="profile-card">
+
+                <div
+                    id="profileAvatar"
+                    class="profile-avatar"
+                >
+                    🐔
+                </div>
+
+
+                <h2
+                    id="profileNickname"
+                >
+                    ChickenPlayer
+                </h2>
+
+
+                <p>
+                    ID:
+                    <b id="profileId">
+                        ...
+                    </b>
+                </p>
+
+            </div>
+
+
+            <div class="stats-grid">
+
+                <div class="stat">
+
+                    <span>
+                        🖱️ Кліків
+                    </span>
+
+                    <b id="statClicks">
+                        0
+                    </b>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <span>
+                        🪙 Зароблено
+                    </span>
+
+                    <b id="statEarned">
+                        0
+                    </b>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <span>
+                        💸 Витрачено
+                    </span>
+
+                    <b id="statSpent">
+                        0
+                    </b>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <span>
+                        🏆 Кубки
+                    </span>
+
+                    <b id="statTrophies">
+                        0
+                    </b>
+
+                </div>
+
+            </div>
+
+
+            <!-- NICKNAME -->
+
+            <div class="settings-box">
+
+                <h3>
+                    ✏️ Нік
+                </h3>
+
+                <input
+                    id="nicknameInput"
+                    type="text"
+                    maxlength="20"
+                    placeholder="Новий нік"
+                >
+
+
+                <h3>
+                    🌈 Колір ніку
+                </h3>
+
+                <input
+                    id="nicknameColorInput"
+                    type="color"
+                    value="#ffffff"
+                >
+
+
+                <button
+                    id="saveNicknameButton"
+                    class="main-button"
+                >
+                    Зберегти
+                </button>
+
+            </div>
+
+
+            <!-- RESET -->
+
+            <button
+                id="resetProgressButton"
+                class="danger-button"
+            >
+                🗑️ Скинути прогрес
+            </button>
+
+        </section>
+
+
+        <!-- =====================
+             PROMOCODES
+        ====================== -->
+
+        <section
+            id="promoPage"
+            class="page"
+        >
+
+            <div class="page-header">
+
+                <h2>
+                    🎟️ Промокоди
+                </h2>
+
+                <p>
+                    Введи промокод та отримай нагороду
+                </p>
+
+            </div>
+
+
+            <div class="promo-box">
+
+                <input
+                    id="promoInput"
+                    type="text"
+                    placeholder="Промокод"
+                >
+
+                <button
+                    id="usePromoButton"
+                    class="main-button"
+                >
+                    Активувати
+                </button>
+
+            </div>
+
+
+            <div class="promo-info">
+
+                <p>
+                    Доступні промокоди:
+                </p>
+
+                <p>
+                    <b>CK</b> — 10 🪙
+                </p>
+
+                <p>
+                    <b>PRO48K</b> — код автора
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================
+             DAILY REWARD
+        ====================== -->
+
+        <section
+            id="dailyPage"
+            class="page"
+        >
+
+            <div class="page-header">
+
+                <h2>
+                    🎁 Щоденна нагорода
+                </h2>
+
+                <p>
+                    Заходь кожного дня та отримуй більше!
+                </p>
+
+            </div>
+
+
+            <div class="daily-card">
+
+                <div class="daily-icon">
+                    🎁
+                </div>
+
+                <h3>
+                    День
+                    <span id="dailyDay">
+                        1
+                    </span>
+                </h3>
+
+                <div
+                    id="dailyReward"
+                    class="daily-reward"
+                >
+                    +10 🪙
+                </div>
+
+                <button
+                    id="claimDailyButton"
+                    class="main-button"
+                >
+                    Отримати
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================
+             BOTTOM NAVIGATION
+        ====================== -->
+
+        <nav class="bottom-nav">
+
+            <button
+                class="nav-button active"
+                data-page="homePage"
+            >
+                <span>
+                    🐔
+                </span>
+
+                <small>
+                    Гра
+                </small>
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="pvpPage"
+            >
+                <span>
+                    ⚔️
+                </span>
+
+                <small>
+                    PvP
+                </small>
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="topPage"
+            >
+                <span>
+                    🏆
+                </span>
+
+                <small>
+                    Топ
+                </small>
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="friendsPage"
+            >
+                <span>
+                    👥
+                </span>
+
+                <small>
+                    Друзі
+                </small>
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="clansPage"
+            >
+                <span>
+                    🛡️
+                </span>
+
+                <small>
+                    Клани
+                </small>
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="shopPage"
+            >
+                <span>
+                    🛒
+                </span>
+
+                <small>
+                    Магазин
+                </small>
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="inventoryPage"
+            >
+                <span>
+                    🎒
+                </span>
+
+                <small>
+                    Інвентарь
+                </small>
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="dailyPage"
+            >
+                <span>
+                    🎁
+                </span>
+
+                <small>
+                    Нагорода
+                </small>
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="promoPage"
+            >
+                <span>
+                    🎟️
+                </span>
+
+                <small>
+                    Промо
+                </small>
+            </button>
+
+        </nav>
 
     </div>
 
 
-    <h3>
-        +0.1 🪙
-    </h3>
+    <!-- =========================
+         TOAST
+    ========================== -->
 
+    <div
+        id="toast"
+        class="toast"
+    ></div>
 
-    <p>
 
-        👆 Кліків:
+    <!-- SOCKET.IO
+         Render підставить цей файл
+         автоматично через сервер
+    -->
 
-        <span id="clicks">
-            0
-        </span>
+    <script
+        src="/socket.io/socket.io.js"
+    ></script>
 
-    </p>
 
-</section>
+    <!-- GAME SCRIPT -->
 
-
-<!-- PvP -->
-
-<section
-id="pvpPage"
-class="page">
-
-<h2>⚔️ PvP</h2>
-
-<p>
-Змагання з реальним гравцем.
-</p>
-
-<p>
-Хто більше наклікає за 2 хвилини —
-перемагає!
-</p>
-
-<button onclick="findPvp()">
-
-    🔎 Знайти гравця
-
-</button>
-
-
-<div
-id="pvpGame"
-class="hidden">
-
-    <h1>
-
-        ⏱️
-
-        <span id="pvpTimer">
-            120
-        </span>
-
-    </h1>
-
-
-    <p>
-
-        Твій результат:
-
-        <span id="myPvpScore">
-            0.0
-        </span>
-
-    </p>
-
-
-    <p>
-
-        Суперник:
-
-        <span id="enemyPvpScore">
-            0.0
-        </span>
-
-    </p>
-
-
-    <button
-    id="pvpClickButton">
-
-        🐔 КЛІКАТИ!
-
-    </button>
-
-</div>
-
-</section>
-
-
-<!-- TOP -->
-
-<section
-id="topPage"
-class="page">
-
-<h2>🏆 Топ-100</h2>
-
-<div id="topPlayers">
-</div>
-
-
-<h2>🛡️ Топ кланів</h2>
-
-<div id="topClans">
-</div>
-
-</section>
-
-
-<!-- FRIENDS -->
-
-<section
-id="friendsPage"
-class="page">
-
-<h2>👥 Друзі</h2>
-
-
-<input
-id="friendId"
-placeholder="ID гравця">
-
-
-<button
-onclick="addFriend()">
-
-➕ Додати
-
-</button>
-
-
-<button
-onclick="loadFriends()">
-
-🔄 Оновити
-
-</button>
-
-
-<div id="friendsList">
-</div>
-
-</section>
-
-
-<!-- CLANS -->
-
-<section
-id="clansPage"
-class="page">
-
-<h2>🛡️ Клани</h2>
-
-<p>
-Створення: 5000 🪙
-</p>
-
-
-<input
-id="clanName"
-placeholder="Назва клану">
-
-
-<button
-onclick="createClan()">
-
-Створити клан
-
-</button>
-
-
-<div id="clanInfo">
-</div>
-
-
-<div
-id="clanChat"
-class="hidden">
-
-<h3>
-💬 Чат клану
-</h3>
-
-
-<div id="messages">
-</div>
-
-
-<input
-id="messageInput"
-placeholder="Написати повідомлення">
-
-
-<button
-onclick="sendClanMessage()">
-
-➤ Відправити
-
-</button>
-
-</div>
-
-</section>
-
-
-<!-- SHOP -->
-
-<section
-id="shopPage"
-class="page">
-
-<h2>🛒 Магазин</h2>
-
-<div id="shopItems">
-</div>
-
-</section>
-
-
-<!-- INVENTORY -->
-
-<section
-id="inventoryPage"
-class="page">
-
-<h2>🎒 Інвентар</h2>
-
-<div id="inventory">
-</div>
-
-</section>
-
-
-<!-- PROFILE -->
-
-<section
-id="profilePage"
-class="page">
-
-<h2>👤 Профіль</h2>
-
-
-<div class="profile">
-
-    <h2
-    id="profileName">
-
-        ChickenPlayer
-
-    </h2>
-
-
-    <p>
-
-        🆔 ID:
-
-        <span id="playerId">
-        </span>
-
-    </p>
-
-
-    <p>
-
-        👆 Кліків:
-
-        <span id="profileClicks">
-        </span>
-
-    </p>
-
-
-    <p>
-
-        💰 Зароблено:
-
-        <span id="earnedCoins">
-        </span>
-
-    </p>
-
-
-    <p>
-
-        🛒 Потрачено:
-
-        <span id="spentCoins">
-        </span>
-
-    </p>
-
-
-    <p>
-
-        🏆 Кубків:
-
-        <span id="profileTrophies">
-        </span>
-
-    </p>
-
-</div>
-
-
-<h3>
-✏️ Змінити нік
-</h3>
-
-
-<input
-id="nicknameInput"
-placeholder="Новий нік">
-
-
-<input
-type="color"
-id="nicknameColor"
-value="#ffffff">
-
-
-<button
-onclick="changeNickname()">
-
-💾 Зберегти
-
-</button>
-
-
-<br>
-
-
-<button
-class="danger"
-onclick="resetProgress()">
-
-🗑️ Скинути прогрес
-
-</button>
-
-</section>
-
-
-<!-- BONUS -->
-
-<section
-id="bonusPage"
-class="page">
-
-<h2>
-🎟️ Промокоди
-</h2>
-
-
-<input
-id="promoInput"
-placeholder="Промокод">
-
-
-<button
-onclick="usePromo()">
-
-Активувати
-
-</button>
-
-
-<hr>
-
-
-<h2>
-🎁 Щоденна нагорода
-</h2>
-
-
-<p>
-
-День:
-
-<span id="dailyDay">
-1
-</span>
-
-</p>
-
-
-<p>
-
-Нагорода:
-
-<span id="dailyReward">
-10
-</span>
-
-🪙
-
-</p>
-
-
-<button
-onclick="claimDaily()">
-
-Забрати
-
-</button>
-
-</section>
-
-
-<nav>
-
-<button
-onclick="openPage('gamePage')">
-
-🐔<br>Гра
-
-</button>
-
-
-<button
-onclick="openPage('pvpPage')">
-
-⚔️<br>PvP
-
-</button>
-
-
-<button
-onclick="openPage('topPage')">
-
-🏆<br>Топ
-
-</button>
-
-
-<button
-onclick="openPage('friendsPage')">
-
-👥<br>Друзі
-
-</button>
-
-
-<button
-onclick="openPage('clansPage')">
-
-🛡️<br>Клани
-
-</button>
-
-
-<button
-onclick="openPage('shopPage')">
-
-🛒<br>Магазин
-
-</button>
-
-
-<button
-onclick="openPage('inventoryPage')">
-
-🎒<br>Інвентар
-
-</button>
-
-
-<button
-onclick="openPage('bonusPage')">
-
-🎁<br>Бонус
-
-</button>
-
-</nav>
-
-
-</div>
-
-
-<script src="/socket.io/socket.io.js"></script>
-
-<script src="script.js"></script>
-
+    <script
+        src="script.js"
+    ></script>
 
 </body>
-            </html>
+                </html>
