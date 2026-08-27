@@ -1994,25 +1994,28 @@ io.on(
 ========================= */
 
 setupDatabase()
-
     .then(async () => {
 
         console.log(
             "База даних підключена!"
         );
 
+        const PORT =
+            process.env.PORT || 3000;
 
-        const PORT = process.env.PORT || 3000;
+        server.listen(
+            PORT,
+            "0.0.0.0",
+            () => {
 
-server.listen(PORT, "0.0.0.0", () => {
-    console.log(`ChickenClick server running on port ${PORT}`);
-});
-             
-            
+                console.log(
+                    `ChickenClick server running on port ${PORT}`
+                );
+
             }
         );
 
-
+    })
     .catch(error => {
 
         console.error(
